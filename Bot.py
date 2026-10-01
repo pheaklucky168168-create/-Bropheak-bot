@@ -8,7 +8,7 @@ from telegram.ext import (
 )
 
 # ដាក់ Token របស់អ្នកផ្ទាល់នៅទីនេះ
-TOKEN = "8894788925:AAEAnqAAYuyGYH6_y04Av4xmBBTNhG83k90"
+TOKEN = "8894788925:AAHR3uToBHZoi5d9FNiZ_PA4EJNZvly1Zc4"
 
 # បើកប្រព័ន្ធ Logging ដើម្បីងាយស្រួលតាមដានដំណើរបូត
 logging.basicConfig(
