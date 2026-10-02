@@ -13,7 +13,7 @@ bot = Bot(token=API_TOKEN)
 storage = MemoryStorage()
 dp = Dispatcher(bot, storage=storage)
 
-# ១. បង្កើតប៊ូតុង Reply Keyboard នៅខាងក្រោម (BUY NOW)
+# ប៊ូតុង Reply Keyboard នៅផ្នែកខាងក្រោម (BUY NOW)
 main_kb = ReplyKeyboardMarkup(resize_keyboard=True)
 main_kb.add(KeyboardButton("🛒 BUY NOW"))
 
@@ -24,15 +24,15 @@ async def send_welcome(message: types.Message):
         reply_markup=main_kb
     )
 
-# ២. ពេលអតិថិជនចុចប៊ូតុង BUY NOW
+# ពេលអតិថិជនចុចប៊ូតុង BUY NOW
 @dp.message_handler(lambda message: message.text == "🛒 BUY NOW")
 async def process_buy_now(message: types.Message):
     inline_kb = InlineKeyboardMarkup(row_width=1)
     inline_kb.add(InlineKeyboardButton("🎯 AIM HACK V2", callback_data="category_aim_hack"))
     
-    await message.answer("Choose a category:", reply_markup=inline_kb)
+    await message.answer("សូមជ្រើសរើសប្រភេទផលិតផល៖", reply_markup=inline_kb)
 
-# ៣. ពេលអតិថិជនចុចលើ AIM HACK V2 -> បង្ហាញជម្រើសរយៈពេល និងស្តុក
+# ពេលអតិថិជនចុចលើ AIM HACK V2 -> បង្ហាញជម្រើសរយៈពេល និងស្តុក
 @dp.callback_query_handler(text="category_aim_hack")
 async def process_aim_hack(callback_query: types.CallbackQuery):
     await bot.answer_callback_query(callback_query.id)
@@ -41,13 +41,13 @@ async def process_aim_hack(callback_query: types.CallbackQuery):
     product_kb.add(
         InlineKeyboardButton("1H - $0.50 [Stock: 154]", callback_data="buy_1h"),
         InlineKeyboardButton("3H - $0.75 [Stock: 123]", callback_data="buy_3h"),
-        InlineKeyboardButton("⬅️ Back", callback_data="back_to_menu")
+        InlineKeyboardButton("⬅️ ត្រឡប់ក្រោយ", callback_data="back_to_menu")
     )
     
-    caption = "🎯 **AIM HACK V2**\n\nSelect a product:"
+    caption = "🎯 **AIM HACK V2**\n\nសូមជ្រើសរើសរយៈពេលដែលចង់ទិញ៖"
     await bot.send_message(callback_query.from_user.id, caption, reply_markup=product_kb, parse_mode="Markdown")
 
-# ៤. ពេលអតិថិជនជ្រើសរើស 1H -> បង្ហាញវិធីសាស្ត្រទូទាត់ប្រាក់ (ABA KHQR)
+# ពេលអតិថិជនជ្រើសរើស 1H -> បង្ហាញវិធីសាស្ត្រទូទាត់ប្រាក់ (ABA KHQR)
 @dp.callback_query_handler(text="buy_1h")
 async def process_buy_1h(callback_query: types.CallbackQuery):
     await bot.answer_callback_query(callback_query.id)
@@ -55,31 +55,30 @@ async def process_buy_1h(callback_query: types.CallbackQuery):
     payment_kb = InlineKeyboardMarkup(row_width=1)
     payment_kb.add(
         InlineKeyboardButton("🟥 ABA KHQR", callback_data="show_qr_aba"),
-        InlineKeyboardButton("⬅️ Back", callback_data="category_aim_hack")
+        InlineKeyboardButton("⬅️ ត្រឡប់ក្រោយ", callback_data="category_aim_hack")
     )
     
     await bot.send_message(
         callback_query.from_user.id,
-        "💰 ជ្រើសរើសវិធីទូទាត់ខាងក្រោម",
+        "💰 សូមជ្រើសរើសវិធីសាស្ត្រទូទាត់ប្រាក់ខាងក្រោម៖",
         reply_markup=payment_kb
     )
 
-# ៥. ពេលអតិថិជនចុចលើ ABA KHQR -> បង្ហាញ QR Code និងវិក្កយបត្រ (តាមរូបភាពតេស្ត)
+# ពេលអតិថិជនចុចលើ ABA KHQR -> បង្ហាញ QR Code និងវិក្កយបត្រ
 @dp.callback_query_handler(text="show_qr_aba")
 async def process_show_qr(callback_query: types.CallbackQuery):
     await bot.answer_callback_query(callback_query.id)
     
     order_id = "#ORD-0XMBX2FS"
-    # យករូបភាព QR Code គំរូមកបង្ហាញ
     qr_image_url = "https://via.placeholder.com/300.png?text=KHQR+0.50USD" 
     
     text_invoice = (
         f"📋 Order **{order_id}**\n\n"
         f"ទំនិញ៖ **1H**\n"
         f"ចំនួនទឹកប្រាក់៖ **0.50 ដុល្លារ**\n\n"
-        f"📱 សេនលេខកូដ QR ដើម្បីបង់ប្រាក់៖\n"
+        f"📱 សូមស្កេនលេខកូដ QR ដើម្បីបង់ប្រាក់៖\n"
         f"1. បើកកម្មវិធីធនាគាររបស់អ្នក\n"
-        f"2. សេន QR ខាងលើ\n"
+        f"2. ស្កេន QR ខាងលើ\n"
         f"3. បំពេញការទូទាត់\n"
         f"4. រង់ចាំការបញ្ជាក់ដោយស្វ័យប្រវត្តិ\n\n"
         f"⏱ រយៈពេលផុតកំណត់៖ 3 នាទី\n\n"
@@ -87,7 +86,7 @@ async def process_show_qr(callback_query: types.CallbackQuery):
     )
     
     cancel_kb = InlineKeyboardMarkup()
-    cancel_kb.add(InlineKeyboardButton("❌ Cancel", callback_data="cancel_order"))
+    cancel_kb.add(InlineKeyboardButton("❌ បោះបង់", callback_data="cancel_order"))
     
     await bot.send_photo(
         callback_query.from_user.id,
