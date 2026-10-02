@@ -1,121 +1,111 @@
 import logging
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
-from telegram.ext import (
-    Application,
-    CommandHandler,
-    CallbackQueryHandler,
-    ContextTypes,
-)
+from aiogram import Bot, Dispatcher, types
+from aiogram.contrib.fsm_storage.memory import MemoryStorage
+from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton
+from aiogram.utils import executor
 
-# ដាក់ Token របស់អ្នកផ្ទាល់នៅទីនេះ
-TOKEN = "8894788925:AAHR3uToBHZoi5d9FNiZ_PA4EJNZvly1Zc4"
+# ដាក់ Telegram Bot Token របស់អ្នកនៅទីនេះ
+API_TOKEN = '8872378600:AAHKQ0xMbiDnHhHxyowP_88bI2GXPQt0IG8'
 
-# បើកប្រព័ន្ធ Logging ដើម្បីងាយស្រួលតាមដានដំណើរបូត
-logging.basicConfig(
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
-)
-logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
 
-# ពាក្យបញ្ជា /start និងបង្ហាញម៉ឺនុយប៊ូតុងដើម
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    keyboard = [
-        [
-            InlineKeyboardButton("📦 Stock", callback_data="stock"),
-            InlineKeyboardButton("🛒 BUY NOW", callback_data="buy_now"),
-        ],
-        [
-            InlineKeyboardButton("ℹ️ Help", callback_data="help"),
-        ],
-    ]
-    reply_markup = InlineKeyboardMarkup(keyboard)
-    
-    await update.message.reply_text(
-        "👋 Welcome to Bropheak Bot!\n\n"
-        "🛍 សូមជ្រើសរើស Menu ខាងក្រោម៖",
-        reply_markup=reply_markup,
+bot = Bot(token=API_TOKEN)
+storage = MemoryStorage()
+dp = Dispatcher(bot, storage=storage)
+
+# ១. បង្កើតប៊ូតុង Reply Keyboard នៅខាងក្រោម (BUY NOW)
+main_kb = ReplyKeyboardMarkup(resize_keyboard=True)
+main_kb.add(KeyboardButton("🛒 BUY NOW"))
+
+@dp.message_handler(commands=['start'])
+async def send_welcome(message: types.Message):
+    await message.reply(
+        "សួស្តី! សូមស្វាគមន៍មកកាន់ហាងលក់ទំនិញស្វ័យប្រវត្តិរបស់យើង។",
+        reply_markup=main_kb
     )
 
-# ការគ្រប់គ្រងពេលអតិថិជនចុចលើប៊ូតុងផ្សេងៗ
-async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    query = update.callback_query
-    await query.answer()
+# ២. ពេលអតិថិជនចុចប៊ូតុង BUY NOW
+@dp.message_handler(lambda message: message.text == "🛒 BUY NOW")
+async def process_buy_now(message: types.Message):
+    inline_kb = InlineKeyboardMarkup(row_width=1)
+    inline_kb.add(InlineKeyboardButton("🎯 AIM HACK V2", callback_data="category_aim_hack"))
+    
+    await message.answer("Choose a category:", reply_markup=inline_kb)
 
-    if query.data == "stock":
-        keyboard = [[InlineKeyboardButton("⬅️ Back", callback_data="back_to_menu")]]
-        reply_markup = InlineKeyboardMarkup(keyboard)
-        await query.edit_message_text(
-            text="📦 **បញ្ជីស្តុកដែលមានស្រាប់៖**\n\n• AIM HACK V2 (ទំនេរ: 10)\n• Esign Certificate (ទំនេរ: 5)",
-            reply_markup=reply_markup,
-            parse_mode="Markdown"
-        )
-    elif query.data == "buy_now":
-        # ម៉ឺនុយជ្រើសរើសធនាគារទូទាត់ប្រាក់ (ABA KHQR & ធនាគារផ្សេងៗ)
-        keyboard = [
-            [InlineKeyboardButton("💳 ABA KHQR", callback_data="pay_khqr")],
-            [
-                InlineKeyboardButton("📱 ABA", callback_data="pay_aba"),
-                InlineKeyboardButton("🟢 Wing", callback_data="pay_wing"),
-            ],
-            [
-                InlineKeyboardButton("💙 Acleda", callback_data="pay_acleda"),
-                InlineKeyboardButton("🟠 TrueMoney", callback_data="pay_truemoney"),
-            ],
-            [InlineKeyboardButton("⬅️ Back", callback_data="back_to_menu")],
-        ]
-        reply_markup = InlineKeyboardMarkup(keyboard)
-        await query.edit_message_text(
-            text="🛒 **ជ្រើសរើសផលិតផល និងវិធីទូទាត់ប្រាក់៖**\n\n"
-                 "🎮 **Game:** AIM HACK V2 - 0.50 USD\n\n"
-                 "👇 សូមជ្រើសរើសធនាគារសម្រាប់ទូទាត់ខាងក្រោម៖",
-            reply_markup=reply_markup,
-            parse_mode="Markdown"
-        )
-    elif query.data == "pay_khqr" or query.data == "pay_aba":
-        keyboard = [[InlineKeyboardButton("⬅️ Back", callback_data="buy_now")]]
-        reply_markup = InlineKeyboardMarkup(keyboard)
-        await query.edit_message_text(
-            text="📲 **សូមស្កេន QR Code ដើម្បីទូទាត់ប្រាក់៖**\n\n"
-                 "• ចំនួនទឹកប្រាក់: **0.50 USD**\n"
-                 "• ពេលទូទាត់រួច ប្រព័ន្ធនឹងផ្ញើ Key ជូនស្វ័យប្រវត្តិ។",
-            reply_markup=reply_markup,
-            parse_mode="Markdown"
-        )
-    elif query.data == "help":
-        keyboard = [[InlineKeyboardButton("⬅️ Back", callback_data="back_to_menu")]]
-        reply_markup = InlineKeyboardMarkup(keyboard)
-        await query.edit_message_text(
-            text="ℹ️ **ជំនួយ (Help)៖**\n\nសម្រាប់បញ្ហាទិញ Key ឬចង់សាកសួរព័ត៌មាន សូមទាក់ទង Admin ផ្ទាល់។",
-            reply_markup=reply_markup,
-            parse_mode="Markdown"
-        )
-    elif query.data == "back_to_menu":
-        keyboard = [
-            [
-                InlineKeyboardButton("📦 Stock", callback_data="stock"),
-                InlineKeyboardButton("🛒 BUY NOW", callback_data="buy_now"),
-            ],
-            [
-                InlineKeyboardButton("ℹ️ Help", callback_data="help"),
-            ],
-        ]
-        reply_markup = InlineKeyboardMarkup(keyboard)
-        await query.edit_message_text(
-            text="👋 Welcome to Bropheak Bot!\n\n"
-                 "🛍 សូមជ្រើសរើស Menu ខាងក្រោម៖",
-            reply_markup=reply_markup,
-            parse_mode="Markdown"
-        )
+# ៣. ពេលអតិថិជនចុចលើ AIM HACK V2 -> បង្ហាញជម្រើសរយៈពេល និងស្តុក
+@dp.callback_query_handler(text="category_aim_hack")
+async def process_aim_hack(callback_query: types.CallbackQuery):
+    await bot.answer_callback_query(callback_query.id)
+    
+    product_kb = InlineKeyboardMarkup(row_width=1)
+    product_kb.add(
+        InlineKeyboardButton("1H - $0.50 [Stock: 154]", callback_data="buy_1h"),
+        InlineKeyboardButton("3H - $0.75 [Stock: 123]", callback_data="buy_3h"),
+        InlineKeyboardButton("⬅️ Back", callback_data="back_to_menu")
+    )
+    
+    caption = "🎯 **AIM HACK V2**\n\nSelect a product:"
+    await bot.send_message(callback_query.from_user.id, caption, reply_markup=product_kb, parse_mode="Markdown")
 
-def main() -> None:
-    # បង្កើត Application សម្រាប់ Bot ( phiên bản v20+)
-    application = Application.builder().token(TOKEN).build()
+# ៤. ពេលអតិថិជនជ្រើសរើស 1H -> បង្ហាញវិធីសាស្ត្រទូទាត់ប្រាក់ (ABA KHQR)
+@dp.callback_query_handler(text="buy_1h")
+async def process_buy_1h(callback_query: types.CallbackQuery):
+    await bot.answer_callback_query(callback_query.id)
+    
+    payment_kb = InlineKeyboardMarkup(row_width=1)
+    payment_kb.add(
+        InlineKeyboardButton("🟥 ABA KHQR", callback_data="show_qr_aba"),
+        InlineKeyboardButton("⬅️ Back", callback_data="category_aim_hack")
+    )
+    
+    await bot.send_message(
+        callback_query.from_user.id,
+        "💰 ជ្រើសរើសវិធីទូទាត់ខាងក្រោម",
+        reply_markup=payment_kb
+    )
 
-    # បញ្ចូល Handler សម្រាប់ /start និងប៊ូតុងអន្តរកម្ម
-    application.add_handler(CommandHandler("start", start))
-    application.add_handler(CallbackQueryHandler(button_handler))
+# ៥. ពេលអតិថិជនចុចលើ ABA KHQR -> បង្ហាញ QR Code និងវិក្កយបត្រ (តាមរូបភាពតេស្ត)
+@dp.callback_query_handler(text="show_qr_aba")
+async def process_show_qr(callback_query: types.CallbackQuery):
+    await bot.answer_callback_query(callback_query.id)
+    
+    order_id = "#ORD-0XMBX2FS"
+    # យករូបភាព QR Code គំរូមកបង្ហាញ
+    qr_image_url = "https://via.placeholder.com/300.png?text=KHQR+0.50USD" 
+    
+    text_invoice = (
+        f"📋 Order **{order_id}**\n\n"
+        f"ទំនិញ៖ **1H**\n"
+        f"ចំនួនទឹកប្រាក់៖ **0.50 ដុល្លារ**\n\n"
+        f"📱 សេនលេខកូដ QR ដើម្បីបង់ប្រាក់៖\n"
+        f"1. បើកកម្មវិធីធនាគាររបស់អ្នក\n"
+        f"2. សេន QR ខាងលើ\n"
+        f"3. បំពេញការទូទាត់\n"
+        f"4. រង់ចាំការបញ្ជាក់ដោយស្វ័យប្រវត្តិ\n\n"
+        f"⏱ រយៈពេលផុតកំណត់៖ 3 នាទី\n\n"
+        f"✅ ការទូទាត់នឹងត្រូវបានផ្ទៀងផ្ទាត់ដោយស្វ័យប្រវត្តិ!"
+    )
+    
+    cancel_kb = InlineKeyboardMarkup()
+    cancel_kb.add(InlineKeyboardButton("❌ Cancel", callback_data="cancel_order"))
+    
+    await bot.send_photo(
+        callback_query.from_user.id,
+        photo=qr_image_url,
+        caption=text_invoice,
+        reply_markup=cancel_kb,
+        parse_mode="Markdown"
+    )
 
-    # ចាប់ផ្តើមដំណើរការបូត
-    application.run_polling()
+# ប៊ូតុងបោះបង់ (Cancel)
+@dp.callback_query_handler(text="cancel_order")
+async def cancel_order(callback_query: types.CallbackQuery):
+    await bot.answer_callback_query(callback_query.id, text="បានបោះបង់ការបញ្ជាទិញ!")
+    await callback_query.message.delete()
 
-if __name__ == "__main__":
-    main()
+@dp.callback_query_handler(text="back_to_menu")
+async def back_to_menu(callback_query: types.CallbackQuery):
+    await callback_query.message.delete()
+
+if __name__ == '__main__':
+    executor.start_polling(dp, skip_updates=True)
